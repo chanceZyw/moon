@@ -1,5 +1,9 @@
 const { getNews } = require('../server/reptile/cnode');
 
-export const reptileRouter = (app): void => {
+const reptileRouter = (app): void => {
     app.get('/news', getNews);
-}
+};
+
+export {
+    reptileRouter
+};
