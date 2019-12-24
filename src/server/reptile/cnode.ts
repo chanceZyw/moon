@@ -1,14 +1,11 @@
-const async = require('async');
 const superagent = require('superagent');
 const cheerio = require('cheerio');
+const async = require('async');
 const url = require('url');
-const express = require('express');
 
 const CNODE_URL = 'https://cnodejs.org/';
 
-const app = express();
-
-const fetchUrl = (url, callback) => {
+const fetchUrl = (url: String, callback: Function) => {
     superagent.get(url).end((err, res) => {
         if(err) return console.error(err);
         callback(null, {
@@ -18,7 +15,7 @@ const fetchUrl = (url, callback) => {
     });
 };
 
-const getNews = resultObj => superagent.get(CNODE_URL).end((err, res) => {
+const getNews = (requestObj, resultObj) => superagent.get(CNODE_URL).end((err, res) => {
     if(err) return;
     let urls = [];
     let $ = cheerio.load(res.text);
@@ -28,6 +25,7 @@ const getNews = resultObj => superagent.get(CNODE_URL).end((err, res) => {
         let href = url.resolve(CNODE_URL, $element.attr('href'));
         urls.push(href);
     });
+    // 控制并发数量
     async.mapLimit(urls, 7, fetchUrl, (err, res) => {
         const l = res.map(htmlCtx => {
             const { url, html } = htmlCtx;
@@ -43,8 +41,6 @@ const getNews = resultObj => superagent.get(CNODE_URL).end((err, res) => {
     });
 });
 
-app.get('/news', (req, res) => {
-    getNews(res);
-});
-
-app.listen(process.env.PORT || 5000, console.log('服务器启动成功'));
+export {
+    getNews
+};
